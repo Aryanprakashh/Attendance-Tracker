@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance Dashboard - {{user.firstname}} {{user.lastname}}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .attendance-card {
+            transition: transform 0.2s;
+        }
+        .attendance-card:hover {
+            transform: translateY(-5px);
+        }
+        .percentage-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: white;
+        }
+        .high-attendance { background: linear-gradient(45deg, #28a745, #20c997); }
+        .medium-attendance { background: linear-gradient(45deg, #ffc107, #fd7e14); }
+        .low-attendance { background: linear-gradient(45deg, #dc3545, #e83e8c); }
+        .btn-attendance {
+            min-width: 100px;
+        }
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-calendar-check me-2"></i>
+                Attendance Tracker
+            </a>
+            <div class="navbar-nav ms-auto">
+                <span class="navbar-text me-3">
+                    Welcome, {{user.firstname}} {{user.lastname}}
+                </span>
+                <a class="nav-link" href="/logout">
+                    <i class="fas fa-sign-out-alt me-1"></i>Logout
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- User Info Card -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card stats-card">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h4 class="card-title mb-2">
+                                    <i class="fas fa-user-graduate me-2"></i>
+                                    Student Information
+                                </h4>
+                                <p class="card-text mb-1">
+                                    <strong>Name:</strong> {{user.firstname}} {{user.lastname}} | 
+                                    <strong>Roll No:</strong> {{user.rollnumber}} | 
+                                    <strong>Email:</strong> {{user.email}}
+                                </p>
+                                <p class="card-text mb-0">
+                                    <strong>Subjects:</strong> {{user.subjects}} | 
+                                    <strong>Phone:</strong> {{user.phone}}
+                                </p>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <div class="percentage-circle high-attendance" id="overallPercentage">
+                                    0%
+                                </div>
+                                <p class="mt-2 mb-0">Overall Attendance</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Subject Section -->
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-plus-circle me-2"></i>
+                            Add New Subject
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="addSubjectForm" class="row g-3">
+                            <div class="col-md-6">
+                                <input type="text" class="form-control" id="newSubject" 
+                                       placeholder="Enter subject name" required>
+                            </div>
+                            <div class="col-md-3">
+                                <input type="number" class="form-control" id="totalClasses" 
+                                       placeholder="Total classes" min="0" required>
+                            </div>
+                            <div class="col-md-3">
+                                <input type="number" class="form-control" id="attendedClasses" 
+                                       placeholder="Attended classes" min="0" required>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-plus me-1"></i>Add Subject
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Cards -->
+        <div class="row" id="attendanceCards">
+            <!-- Attendance cards will be dynamically generated here -->
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mt-4">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-bolt me-2"></i>
+                            Quick Actions
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-3 mb-2">
+                                <button class="btn btn-success w-100" onclick="markAllPresent()">
+                                    <i class="fas fa-check-circle me-1"></i>Mark All Present
+                                </button>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <button class="btn btn-danger w-100" onclick="markAllAbsent()">
+                                    <i class="fas fa-times-circle me-1"></i>Mark All Absent
+                                </button>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <button class="btn btn-info w-100" onclick="generateReport()">
+                                    <i class="fas fa-file-alt me-1"></i>Generate Report
+                                </button>
+                            </div>
+                            <div class="col-md-3 mb-2">
+                                <button class="btn btn-warning w-100" onclick="resetAttendance()">
+                                    <i class="fas fa-redo me-1"></i>Reset All
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Modal -->
+    <div class="modal fade" id="reportModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Attendance Report</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="reportContent">
+                    <!-- Report content will be generated here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" onclick="printReport()">
+                        <i class="fas fa-print me-1"></i>Print
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let attendanceData = [];
+
+        // Load attendance data on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAttendance();
+        });
+
+        // Load attendance data from server
+        async function loadAttendance() {
+            try {
+                const response = await fetch('/api/attendance');
+                const data = await response.json();
+                
+                if (data.success !== false) {
+                    attendanceData = data.attendance || [];
+                    updateOverallPercentage(data.overallPercentage || 0);
+                    renderAttendanceCards();
+                }
+            } catch (error) {
+                console.error('Error loading attendance:', error);
+                showAlert('Error loading attendance data', 'danger');
+            }
+        }
+
+        // Render attendance cards
+        function renderAttendanceCards() {
+            const container = document.getElementById('attendanceCards');
+            container.innerHTML = '';
+
+            if (attendanceData.length === 0) {
+                container.innerHTML = `
+                    <div class="col-12">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <i class="fas fa-calendar-plus fa-3x text-muted mb-3"></i>
+                                <h5>No subjects added yet</h5>
+                                <p class="text-muted">Add your first subject to start tracking attendance</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            attendanceData.forEach((subject, index) => {
+                const percentage = subject.totalClasses > 0 ? 
+                    ((subject.attendedClasses / subject.totalClasses) * 100).toFixed(1) : 0;
+                
+                const cardClass = percentage >= 75 ? 'high-attendance' : 
+                                 percentage >= 60 ? 'medium-attendance' : 'low-attendance';
+
+                const card = document.createElement('div');
+                card.className = 'col-md-6 col-lg-4 mb-4';
+                card.innerHTML = `
+                    <div class="card attendance-card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h6 class="mb-0">${subject.subject}</h6>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteSubject('${subject.subject}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <div class="card-body text-center">
+                            <div class="percentage-circle ${cardClass} mx-auto mb-3">
+                                ${percentage}%
+                            </div>
+                            <p class="mb-2">
+                                <strong>${subject.attendedClasses}</strong> / <strong>${subject.totalClasses}</strong> classes
+                            </p>
+                            <div class="btn-group w-100" role="group">
+                                <button class="btn btn-success btn-attendance" onclick="markAttendance('${subject.subject}', 'present')">
+                                    <i class="fas fa-check me-1"></i>Present
+                                </button>
+                                <button class="btn btn-danger btn-attendance" onclick="markAttendance('${subject.subject}', 'absent')">
+                                    <i class="fas fa-times me-1"></i>Absent
+                                </button>
+                            </div>
+                            <small class="text-muted mt-2 d-block">
+                                Last updated: ${new Date(subject.lastUpdated).toLocaleDateString()}
+                            </small>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Mark attendance for a subject
+        async function markAttendance(subject, action) {
+            try {
+                const response = await fetch('/api/attendance', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ subject, action })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    attendanceData = data.attendance;
+                    updateOverallPercentage(data.overallPercentage);
+                    renderAttendanceCards();
+                    showAlert(`Marked ${action} for ${subject}`, 'success');
+                } else {
+                    showAlert(data.error || 'Failed to update attendance', 'danger');
+                }
+            } catch (error) {
+                console.error('Error marking attendance:', error);
+                showAlert('Error updating attendance', 'danger');
+            }
+        }
+
+        // Add new subject
+        document.getElementById('addSubjectForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const subject = document.getElementById('newSubject').value.trim();
+            const totalClasses = parseInt(document.getElementById('totalClasses').value);
+            const attendedClasses = parseInt(document.getElementById('attendedClasses').value);
+
+            if (attendedClasses > totalClasses) {
+                showAlert('Attended classes cannot be more than total classes', 'warning');
+                return;
+            }
+
+            // Add subject to attendance data
+            const newSubject = {
+                subject,
+                totalClasses,
+                attendedClasses,
+                lastUpdated: new Date()
+            };
+
+            attendanceData.push(newSubject);
+            renderAttendanceCards();
+            
+            // Clear form
+            document.getElementById('addSubjectForm').reset();
+            
+            showAlert(`Subject "${subject}" added successfully`, 'success');
+        });
+
+        // Delete subject
+        function deleteSubject(subject) {
+            if (confirm(`Are you sure you want to delete "${subject}"?`)) {
+                attendanceData = attendanceData.filter(item => item.subject !== subject);
+                renderAttendanceCards();
+                showAlert(`Subject "${subject}" deleted`, 'success');
+            }
+        }
+
+        // Update overall percentage
+        function updateOverallPercentage(percentage) {
+            const element = document.getElementById('overallPercentage');
+            element.textContent = `${percentage}%`;
+            
+            // Update color based on percentage
+            element.className = 'percentage-circle';
+            if (percentage >= 75) {
+                element.classList.add('high-attendance');
+            } else if (percentage >= 60) {
+                element.classList.add('medium-attendance');
+            } else {
+                element.classList.add('low-attendance');
+            }
+        }
+
+        // Quick actions
+        function markAllPresent() {
+            if (attendanceData.length === 0) {
+                showAlert('No subjects to mark', 'warning');
+                return;
+            }
+            
+            attendanceData.forEach(subject => {
+                subject.totalClasses += 1;
+                subject.attendedClasses += 1;
+                subject.lastUpdated = new Date();
+            });
+            
+            renderAttendanceCards();
+            showAlert('Marked all subjects as present', 'success');
+        }
+
+        function markAllAbsent() {
+            if (attendanceData.length === 0) {
+                showAlert('No subjects to mark', 'warning');
+                return;
+            }
+            
+            attendanceData.forEach(subject => {
+                subject.totalClasses += 1;
+                subject.lastUpdated = new Date();
+            });
+            
+            renderAttendanceCards();
+            showAlert('Marked all subjects as absent', 'success');
+        }
+
+        function generateReport() {
+            const reportContent = document.getElementById('reportContent');
+            let reportHTML = `
+                <div class="text-center mb-4">
+                    <h4>Attendance Report</h4>
+                    <p class="text-muted">Generated on ${new Date().toLocaleDateString()}</p>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Subject</th>
+                                <th>Attended</th>
+                                <th>Total</th>
+                                <th>Percentage</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            attendanceData.forEach(subject => {
+                const percentage = subject.totalClasses > 0 ? 
+                    ((subject.attendedClasses / subject.totalClasses) * 100).toFixed(1) : 0;
+                const status = percentage >= 75 ? 'Good' : percentage >= 60 ? 'Warning' : 'Critical';
+                const statusClass = percentage >= 75 ? 'success' : percentage >= 60 ? 'warning' : 'danger';
+
+                reportHTML += `
+                    <tr>
+                        <td>${subject.subject}</td>
+                        <td>${subject.attendedClasses}</td>
+                        <td>${subject.totalClasses}</td>
+                        <td>${percentage}%</td>
+                        <td><span class="badge bg-${statusClass}">${status}</span></td>
+                    </tr>
+                `;
+            });
+
+            reportHTML += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            reportContent.innerHTML = reportHTML;
+            
+            const modal = new bootstrap.Modal(document.getElementById('reportModal'));
+            modal.show();
+        }
+
+        function resetAttendance() {
+            if (confirm('Are you sure you want to reset all attendance data? This action cannot be undone.')) {
+                attendanceData = [];
+                renderAttendanceCards();
+                updateOverallPercentage(0);
+                showAlert('All attendance data has been reset', 'info');
+            }
+        }
+
+        function printReport() {
+            window.print();
+        }
+
+        // Show alert messages
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            
+            document.body.appendChild(alertDiv);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+    </script>
+</body>
+</html> 

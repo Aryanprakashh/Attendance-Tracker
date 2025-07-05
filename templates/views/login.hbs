@@ -6,20 +6,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" href="css/register_style.css">
-    <title>Login</title>
+    <title>Login - Attendance Tracker</title>
 </head>
 <body>
  <div class="wrapper">
     <nav class="nav">
         <div class="nav-logo">
-            <p>MyAttendenceTracker</p>
+            <p>MyAttendanceTracker</p>
         </div>
         <div class="nav-button">
             <button class="btn white-btn" id="loginBtn">Log In</button>
             <a href="/register">
                 <button class="btn" id="registerBtn">Sign Up</button>
             </a>
-            
         </div>
     </nav>
 
@@ -32,8 +31,15 @@
             <div class="top">
                 <span>Don't have an account? <a href="/register">Sign Up</a></span>
                 <header>Login</header>
-            </div>  
-            <form action="/login" method="POST">
+            </div>
+            
+            {{#if error}}
+            <div class="alert alert-danger" role="alert" style="margin-bottom: 20px; padding: 10px; border-radius: 5px; background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb;">
+                <i class="bx bx-error-circle"></i> {{error}}
+            </div>
+            {{/if}}
+            
+            <form action="/login" method="POST" id="loginForm">
                 <div class="input-box">
                     <input type="email" class="input-field" placeholder="Email" required name="email">
                     <i class="bx bx-user"></i>
@@ -56,8 +62,26 @@
                 </div>
             </div>
         </div>
-        {{!--  --}}
     </div>
-</div>   
+</div>
+
+<script>
+document.getElementById('loginForm').addEventListener('submit', function(e) {
+    const email = document.querySelector('input[name="email"]').value;
+    const password = document.querySelector('input[name="password"]').value;
+    
+    if (!email || !password) {
+        e.preventDefault();
+        alert('Please fill in all fields!');
+        return false;
+    }
+    
+    if (!email.includes('@')) {
+        e.preventDefault();
+        alert('Please enter a valid email address!');
+        return false;
+    }
+});
+</script>
 </body>
 </html>
